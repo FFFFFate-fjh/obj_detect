@@ -426,6 +426,22 @@ def feature_compute(src):
         feature = {'kp': kp, 'des': des}
         return feature
 
+def feature_matching(img_feature, template_feature):
+    FLANN_INDEX_KDTREE = 1
+    index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
+    search_params = dict(checks=32)
+    matcher = cv2.FlannBasedMatcher(index_params, search_params)
+
+    matches = matcher.knnMatch(template_feature['des'], img_feature['des'], k=2)
+    good = []
+    for m, n in matches:
+        if m.distance < 0.75 * n.distance:
+            good.append(m)
+
+    confidence = len(good) / (8 + 0.3 * len(matches))
+
+    return confidence
+
 def detection(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     regray = imresize_maxedge(gray, 640)
@@ -441,7 +457,7 @@ def detection(img):
 
     congray = imresize_maxedge(otsu, max(img.shape))
 
-    contours, hierarchy = cv2.findContours(congray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    _, contours, hierarchy = cv2.findContours(congray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     # cv2.drawContours(img, contours, -1, (0, 255, 0), 1)
 
     obj_list = []
@@ -460,7 +476,7 @@ def detection(img):
         obj_img = gray[obj['bndbox'][0]:obj['bndbox'][2], obj['bndbox'][1]:obj['bndbox'][3]]
         # cv2.imshow('obj_img', obj_img)
         # cv2.waitKey()
-        re_obj_img = imresize_maxedge(obj_img, 64)
+        re_obj_img = imresize_maxedge(obj_img, 128)
         feature = feature_compute(re_obj_img)
         if feature is not None:
             new_obj = {}
@@ -484,7 +500,19 @@ def object_detection(input_img, target_img):
 
     target_feature = feature_compute(target_img)
 
-    pass
+    match_obj_list = []
+    for obj in obj_list:
+        conf = feature_matching(obj['feature'], target_feature)
+        if conf >= 0.5:
+            match_obj_list.append(obj)
+
+    for obj in match_obj_list:
+        cv2.rectangle(input_img, (obj['bndbox'][1], obj['bndbox'][0]), (obj['bndbox'][3], obj['bndbox'][2]), (0, 255, 0), 2)
+
+    cv2.imshow('output', input_img)
+    cv2.waitKey()
+
+    cv2.imwrite('./output.jpg',input_img)
 
 if __name__ == '__main__':
 
