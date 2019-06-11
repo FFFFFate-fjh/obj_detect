@@ -1,5 +1,5 @@
 # obj_detect
-
+python obj_detect.py source.jpg t1.jpg
 ## 方法优缺点
 主要算法:<br/> 
 1.大津法阈值分割<br/> 
