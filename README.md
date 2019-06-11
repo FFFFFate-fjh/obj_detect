@@ -1,4 +1,5 @@
 # obj_detect
+run:<br/>
 python obj_detect.py source.jpg t1.jpg
 ## 方法优缺点
 主要算法:<br/> 
