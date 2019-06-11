@@ -334,10 +334,13 @@ def object_detection(input_img, target_img):
             match_obj_list.append(obj)
             continue
 
+    output_list = []
     for obj in match_obj_list:
         cv2.rectangle(input_img, (obj['bndbox'][1], obj['bndbox'][0]), (obj['bndbox'][3], obj['bndbox'][2]), (0, 255, 0), 2)
-        print obj['bndbox'][0], obj['bndbox'][1], obj['bndbox'][2], obj['bndbox'][3]
+        tup =  (obj['bndbox'][0], obj['bndbox'][1], obj['bndbox'][2], obj['bndbox'][3])
+        output_list.append(tup)
 
+    print output_list
     # # cv2.namedWindow('output', 2)
     # cv2.imshow('output', input_img)
     # cv2.waitKey()
